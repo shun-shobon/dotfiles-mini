@@ -1,5 +1,13 @@
 /**
 
+!/LICENSE
+!/.vim
+!/.vim/vimrc
+!/.vim/swap/
+/.vim/swap/**
+!/.vim/undo
+/.vim/undo/**
+
+!.gitkeep
 !.gitignore
 !README.md
-!/LICENSE

@@ -1,0 +1,168 @@
+" スクリプト内で使用する文字コード
+scriptencoding utf-8
+
+" 設定で使用しているグループの初期化
+augroup vimrc
+  autocmd!
+augroup END
+
+" バッファやレジスタ内で使用する文字コード
+set encoding=utf-8
+
+" 既存のファイルを開くときに推論する文字コードの順序
+set fileencodings=utf-8,iso-2033-jp,euc-jp,sjis
+
+let s:dotvim_home = expand("$HOME/.vim")
+
+" viminfoファイルの出力先を変更
+execute "set viminfo+=n" . s:dotvim_home . "/viminfo"
+
+" Undo履歴の永続化
+execute "set undodir=" . s:dotvim_home . "/undo"
+set undofile
+
+" Swapファイルの出力先を変更
+execute "set directory=" . s:dotvim_home . "/swap"
+
+" コマンドライン補完を拡張モードに設定
+set wildmenu
+" 補完の仕方を始めに最長共通文字列を補完し、次から完全に補完する
+set wildmode=longest,full
+
+" 行番号を表示
+set number
+
+" スクロールにオフセットを持たせる
+set scrolloff=5
+
+" 自動改行を無効化
+set textwidth=0
+
+" 不可視文字を表示
+set list
+" 不可視文字のスタイルを変更
+set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%,eol:↵
+
+" カーソルラインを表示
+set cursorline
+
+" モードに応じてカーソルのスタイルを変更
+let &t_SI .= "\e[6 q"
+let &t_EI .= "\e[2 q"
+let &t_SR .= "\e[4 q"
+
+" タブラインを常に表示
+set showtabline=2
+
+" ステータスラインを常に表示
+set laststatus=2
+
+" 検索結果をハイライト
+set hlsearch
+
+" 検索時のみ大文字小文字を区別しない
+autocmd vimrc CmdlineEnter [/?] set ignorecase
+autocmd vimrc CmdlineLeave [/?] set noignorecase
+
+" 大文字が含まれる場合は区別する
+set smartcase
+
+" インクリメンタルサーチを有効化
+set incsearch
+
+" バックスラッシュやエクステンションを自動エスケープ
+cnoremap <expr> / getcmdtype() == "/" ? "\/" : "/"
+cnoremap <expr> ? getcmdtype() == "?" ? "\?" : "?"
+
+" 手動インデント時に'shiftwidth'の倍数に丸める
+set shiftround
+
+" 矩形選択時にテキストが存在しない部分でも選択できるようにする
+set virtualedit=block
+
+" バッファを閉じずに隠す
+set hidden
+
+" ファイルを新しく開く代わりに既に開いてあるバッファを使用する
+set switchbuf=useopen
+
+" 対応する括弧をハイライト表示する
+set showmatch
+" ハイライト表示の時間を設定
+set matchtime=2
+
+" バックスペースでなんでも消せるようにする
+set backspace=indent,eol,start
+
+" タブをスペースに展開
+set expandtab
+
+" インデントを考慮して改行
+set smartindent
+
+" 挿入モード中にjjで<Esc>
+inoremap jj <Esc>
+
+" [Prefix]というマッピングを追加
+nnoremap [Prefix] <Nop>
+" <Space>に[Prefix]を割り当て
+nmap <Space> [Prefix]
+
+" <Esc>x2がハイライトオフ
+nnoremap <silent> <Esc><Esc> <Cmd>nohlsearch<CR>
+
+" 検索結果を画面中央に表示
+nnoremap n nzz
+nnoremap N Nzz
+nnoremap * *zz
+nnoremap # #zz
+nnoremap g* g*zz
+nnoremap g# g#zz
+
+" 数値指定がない場合は表示行でj, k移動
+nnoremap <expr> j v:count ? 'j' : 'gj'
+nnoremap <expr> k v:count ? 'k' : 'gk'
+
+" vx2で行末まで選択
+vnoremap v $h
+
+" Ctrl + hjklでウィンドウ間移動
+nnoremap <silent> <C-h> <C-w>h
+nnoremap <silent> <C-j> <C-w>j
+nnoremap <silent> <C-k> <C-w>k
+nnoremap <silent> <C-l> <C-w>l
+
+" QuickFix及びHelpではqで閉じる
+autocmd vimrc FileType help,qf nnoremap <buffer> q <C-w>c
+
+" w!!でスーパーユーザーとして保存
+cmap w!! w !sudo tee > /dev/null %
+
+" H, Lで行頭、行末へ移動
+nnoremap H ^
+nnoremap L $
+
+" make, grepなどのコマンドの後に自動的にQuickFixを開く
+autocmd vimrc QuickfixCmdPost make,grep,grepadd,vimgrep, copen
+
+" 存在しないディレクトリのファイルを保存しようとしたとき、ディレクトリを作成するか問う
+function! s:mkdir(dir, force) abort
+    if !isdirectory(a:dir) && (a:force ||
+            \ input(printf('"%s" does not exist. Create? [y/N]', a:dir)) =~? "^y\%[es]$")
+        call mkdir(iconv(a:dir, &encoding, &termenconding), "p")
+    endif
+endfunction
+autocmd vimrc BufWritePre * call s:mkdir(expand("<afile>:p:h"), v:cmdbang)
+
+" 特定のコマンドを履歴に保存しない
+let s:histignore = ["history", "h\%[elp]", "qa\?\!\?", "wq\?a\?!\?"]
+function! s:delIgnoreHistory() abort
+    let l:history = histget(":", -1)
+    for l:ignore in s:histignore
+        if l:history =~# "^" . l:ignore . "$"
+            call histdel(":", -1)
+            break
+        endif
+    endfor
+endfunction
+autocmd vimrc CmdlineEnter : call s:delIgnoreHistory()
