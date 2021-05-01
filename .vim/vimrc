@@ -53,9 +53,9 @@ set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%,eol:↵
 set cursorline
 
 " モードに応じてカーソルのスタイルを変更
-let &t_SI .= "\e[6 q"
-let &t_EI .= "\e[2 q"
-let &t_SR .= "\e[4 q"
+let &t_SI .= "\033[6 q"
+let &t_EI .= "\033[2 q"
+let &t_SR .= "\033[4 q"
 
 " タブラインを常に表示
 set showtabline=2
